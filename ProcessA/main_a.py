@@ -1,46 +1,114 @@
 import socket
 import time
+from typing import AnyStr
+import os
 
 original_cad_filename = 'assets/cad_mesh.stl'
 returned_cad_filename = 'assets/output.stl'
 
 
-def send_cad_file():
+class Server():
 
-    # Create socket object
-    s = socket.socket()
+    def __init__(self, port_number: AnyStr, host_name: AnyStr):
+        self.port_number = port_number
+        self.host_name = host_name
 
-    # Choose a port to send / receive data over
-    port = 8000
+        # Create socket object and bind to the port number
+        self.s = socket.socket()
+        self.s.bind((self.host_name, self.port_number))
 
-    # Get the host IP Address
-    host_name = socket.gethostname()
+    def send_file(self, send_filename: AnyStr):
 
-    # Bind to the port
-    s.bind((host_name, port))
+        # Open the file for sending
+        send_file = open(send_filename, 'rb')
 
-    # Open the cad file for sending
-    original_cad_file = open('assets/cad_mesh.stl', 'rb')
+        # Send the file 1024 bytes at a time, until the whole file is sent
+        print('Sending cad data...')
+        data_chunk = send_file.read(1024)
+        while(data_chunk):
+            print("Sending cad data...")
+            self.s.send(data_chunk)
+            data_chunk = send_file.read(1024)
+        # Finally, close the original file
+        send_file.close()
+        print("Done sending cad data!")
 
-    # Open the new cad file for receiving
-    returned_cad_file = open('assets/output.stl', 'wb')
+    def receive_file(self, receive_filename: AnyStr):
 
-    # Send the file 1024 bytes at a time, until the whole file is sent
-    print('Sending cad data...')
-    data_chunk = original_cad_file.read(1024)
-    while(data_chunk):
-        print("Sending cad data...")
-        s.send(data_chunk)
-        data_chunk = original_cad_file.read(1024)
-    # Finally, close the original file
-    original_cad_file.close()
-    print("Done sending cad data!")
+        # Open the (new) file for receiving
+        receive_file = open(receive_filename, 'wb')
 
-    # Signify that we're done sending data
-    s.shutdown()
+        # Listen for the client connection
+        self.s.listen(5)
+
+        # Connect with client
+        c, addr = self.s.accept()
+        print(f'Established connection with {addr}.')
+        print('Receiving bytes...')
+
+        # Receive the data (1024 bytes at a time)
+        data_chunk = c.recv(1024)
+        while (data_chunk):
+            print("Receiving bytes...")
+            receive_file.write(data_chunk)
+            data_chunk = c.recv(1024)
+
+            print('Done receiving bytes')
+
+        # Finally, close the (new) file
+        receive_file.close()
+
+    def delete_file(self, filename):
+        ''' Simply deletes a file (if it exists) '''
+        if os.path.exists(filename):
+            os.remove(filename)
+        else:
+            print("File to be deleted can't be found!")
 
 
+class CADServerA(Server):
+
+    def __init__(self, port_number: AnyStr, host_name: AnyStr, original_cad_filename: AnyStr, new_cad_filename: AnyStr):
+        # Call the superclass constructor for a basic server
+        super().__init__(port_number, host_name)
+
+        # Set the filenames for the CAD files
+        self.original_cad_filename = original_cad_filename
+        self.new_cad_filename = new_cad_filename
+
+    def send_file(self):
+        ''' Overrides Server.send_file to add the original cad file name. '''
+        super().send_file(self, self.original_cad_filename)
+
+    def receive_file(self):
+        ''' Overrides Server.receive_file to add the new cad file name. '''
+        super().receive_file(self, self.new_cad_filename)
 
 
+class CADServerB(Server):
 
+    def __init__(self, port_number: AnyStr, host_name: AnyStr, original_cad_filename: AnyStr, new_cad_filename: AnyStr):
+        # Call the superclass constructor for a basic server
+        super().__init__(port_number, host_name)
 
+        # Set the filenames for the CAD files
+        self.original_cad_filename = original_cad_filename
+        self.new_cad_filename = new_cad_filename
+
+    def send_file(self):
+        ''' Overrides Server.send_file to throw an exception. '''
+        raise AttributeError('\'CADServerB\' object has no attribute \'send_file\'')
+
+    def receive_file(self):
+        ''' Overrides Server.receive_file to add the new cad file name. '''
+        raise AttributeError('\'CADServerB\' object has no attribute \'receive_file\'')
+
+    def rebound_file(self):
+        # First, receive the file
+        super().receive_file(self, 'temporary_file.stl')
+
+        # Then, send the file back
+        super().send_file(self, 'temporary_file.stl')
+
+        # Finally, delete the file
+        super().delete_file('temporary_file.stl')
