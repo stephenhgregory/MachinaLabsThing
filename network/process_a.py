@@ -8,6 +8,7 @@ returned_cad_filename = 'assets/output.stl'
 
 PORT_NUMBER = 8000
 HOST_NAME = socket.gethostname()
+SERVER_HOST_NAME = '192.168.1.162'
 
 def main():
     # Initialize Server object
