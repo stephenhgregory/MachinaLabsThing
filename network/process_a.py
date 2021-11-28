@@ -14,7 +14,7 @@ SERVER_HOST_NAME = '192.168.1.162'
 
 def main():
     # Initialize Server object
-    cad_server_a = simple_server.CADServerA(port_number=PORT_NUMBER, server_host_name=SERVER_HOST_NAME, 
+    cad_server_a = simple_server.CADServerA(port_number=PORT_NUMBER, host_name=SERVER_HOST_NAME, 
                                             original_cad_filename=ORIGINAL_CAD_FILENAME, 
                                             new_cad_filename=RETURNED_CAD_FILENAME)
 
