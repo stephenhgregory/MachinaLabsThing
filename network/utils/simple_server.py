@@ -17,6 +17,7 @@ class Server():
 
         # Create socket object and bind to the port number
         self.s = socket.socket()
+        self.s.setsockopt(socket.SOL_SOCKET, SO_REUSEADDR, 1)
         self.s.bind((self.host_name, self.port_number))
 
     def send_file(self, send_filename: AnyStr):
@@ -93,9 +94,16 @@ class CADServerA(Server):
 class CADServerB(Server):
     '''Subclass of 'Server' that satisfies the conditions of "Process B" in Machina Labs assignment'''
 
-    def __init__(self, port_number: AnyStr, host_name: AnyStr):
-        # Call the superclass constructor for a basic server
-        super().__init__(port_number, host_name)
+    def __init__(self, port_number: AnyStr, server_host_name: AnyStr):
+
+        # TODO: Better Docs
+        self.port_number = port_number
+        self.server_host_name = server_host_name
+
+        # Create socket object and bind to the port number
+        self.s = socket.socket()
+        self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.s.connect((self.server_host_name, self.port_number))
 
     def send_file(self):
         ''' Overrides Server.send_file to throw an exception. '''
