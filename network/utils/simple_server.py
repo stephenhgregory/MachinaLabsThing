@@ -5,7 +5,7 @@ import time
 from typing import AnyStr
 import os
 import filecmp
-import file_utils
+from . import file_utils
 
 
 class Server():
