@@ -43,7 +43,7 @@ class Server():
         receive_file = open(receive_filename, 'wb')
 
         # Listen for the client connection
-        self.s.listen(5)
+        # self.s.listen(5)
 
         while(True):
 
