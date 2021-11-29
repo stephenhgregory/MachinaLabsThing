@@ -77,8 +77,15 @@ class CADServerA(Server):
     '''Subclass of 'Server' that satisfies the conditions of "Process A" in Machina Labs assignment'''
 
     def __init__(self, port_number: AnyStr, host_name: AnyStr, original_cad_filename: AnyStr, new_cad_filename: AnyStr):
-        # Call the superclass constructor for a basic server
-        super().__init__(port_number, host_name)
+
+        # TODO: Better Docs
+        self.port_number = port_number
+        self.host_name = host_name
+
+        # Create socket objeƒserverct and bind to the port number
+        self.s = socket.socket()
+        self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.s.connect((self.host_name, self.port_number))
 
         # Set the filenames for the CAD files
         self.original_cad_filename = original_cad_filename
@@ -95,15 +102,8 @@ class CADServerB(Server):
     '''Subclass of 'Server' that satisfies the conditions of "Process B" in Machina Labs assignment'''
 
     def __init__(self, port_number: AnyStr, host_name: AnyStr):
-
-        # TODO: Better Docs
-        self.port_number = port_number
-        self.host_name = host_name
-
-        # Create socket objeƒserverct and bind to the port number
-        self.s = socket.socket()
-        self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.s.connect((self.host_name, self.port_number))
+        # Call the superclass constructor for a basic server
+        super().__init__(port_number, host_name)
 
     def send_file(self):
         ''' Overrides Server.send_file to throw an exception. '''
