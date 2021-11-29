@@ -20,6 +20,7 @@ class Server():
         self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.s.bind((self.host_name, self.port_number))
 
+
     def send_file(self, send_filename: AnyStr):
 
         # Open the file for sending
@@ -42,7 +43,7 @@ class Server():
         receive_file = open(receive_filename, 'wb')
 
         # Listen for the client connection
-        self.s.listen(2)
+        self.s.listen(5)
 
         while(True):
 
