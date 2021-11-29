@@ -42,9 +42,6 @@ class Server():
         # Open the (new) file for receiving
         receive_file = open(receive_filename, 'wb')
 
-        # Listen for the client connection
-        # self.s.listen(5)
-
         while(True):
 
             # Connect with client
@@ -115,6 +112,10 @@ class CADServerB(Server):
         raise AttributeError('\'CADServerB\' object has no attribute \'receive_file\'')
 
     def rebound_file(self):
+
+        # Listen for client connection
+        self.s.listen(5)
+
         # First, receive the file
         super().receive_file('temporary_file.stl')
 
