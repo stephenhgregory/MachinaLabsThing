@@ -100,7 +100,7 @@ class CADServerB(Server):
         self.port_number = port_number
         self.host_name = host_name
 
-        # Create socket object and bind to the port number
+        # Create socket objeƒserverct and bind to the port number
         self.s = socket.socket()
         self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.s.connect((self.host_name, self.port_number))
