@@ -100,10 +100,12 @@ class TCPSocketUser():
 class ProcessA(TCPSocketUser):
     '''Subclass of 'TCPSocketUser' that satisfies the conditions of "Process A" in Machina Labs assignment'''
 
-    def __init__(self, first_available_port_number: int, last_available_port_number: int, host_name: AnyStr, original_cad_filename: AnyStr, new_cad_filename: AnyStr):
+    def __init__(self, first_available_port_number: int, last_available_port_number: int, host_name: AnyStr, 
+                original_cad_filename: AnyStr, new_cad_filename: AnyStr = None, new_csv_filename: AnyStr = None):
         super().__init__(first_available_port_number, last_available_port_number, host_name)
         self.original_cad_filename = original_cad_filename
         self.new_cad_filename = new_cad_filename
+        self.new_csv_filename = new_csv_filename
 
     def send_file(self):
         ''' Overrides TCPSocketUser.send_file to throw an exception. '''
@@ -115,12 +117,44 @@ class ProcessA(TCPSocketUser):
 
     @file_utils.function_timer
     def send_and_receive_file(self):
-        ''' Simply sends and receives the file to/from Server B '''
+        ''' 
+        Simply sends and receives the CAD file to/from Server B 
+        '''
+        # Connect to the port
         super().connect()
+
+        # Send the .stl file to Process B
         super().send_file(self.original_cad_filename)
+
+        # Increment the port number (TCP ports need time to open up after closing)
         super().increment_port_number()
+
+        # Bind to the new port
         super().bind()
+
+        # Receive the new csv file
         super().receive_file(self.new_cad_filename)
+
+    @file_utils.function_timer
+    def send_and_receive_csv_file(self):
+        ''' 
+        Sends an .stl file to Process B, and receives a .csv version of the contents
+        of the file in return.
+        '''
+        # Connect to the port
+        super().connect()
+
+        # Send the .stl file to Process B
+        super().send_file(self.original_cad_filename)
+
+        # Increment the port number (TCP ports need time to open up after closing)
+        super().increment_port_number()
+
+        # Bind to the new port
+        super().bind()
+
+        # Receive the new csv file
+        super().receive_file(self.new_csv_filename)
 
 
 class ProcessB(TCPSocketUser):
@@ -138,7 +172,10 @@ class ProcessB(TCPSocketUser):
         raise AttributeError('\'ProcessB\' object has no attribute \'receive_file\'')
 
     def rebound_file(self):
-        ''' Performs "rebound" operation, receiving and immediately sending back file to Process A'''
+        ''' 
+        Performs "rebound" operation, receiving and immediately sending back file to 
+        Process A
+        '''
 
         # First, receive the file
         super().bind()
@@ -154,15 +191,26 @@ class ProcessB(TCPSocketUser):
         # Finally, delete the file
         super().delete_file('temporary_file.stl')
 
+    def rebound_csv_file(self):
+        ''' 
+        Performs "rebound" operation, receiving and immediately sending back file to
+        Process A
+        '''
 
-def is_same(filename1: AnyStr, filename2: AnyStr) -> bool:
-    '''Check whether two files are equivalent'''
-    return filecmp.cmp(filename1, filename2)
+        # First, receive the file
+        super().bind()
+        super().receive_file('temporary_cad_file.stl')
 
-def function_timer(func):
-    def wrapper_function(*args, **kwargs):
-        t1 = time.time()
-        func(*args,  **kwargs)
-        t2 = time.time()
-        print(f'Function {func.__name__!r} executed in {(t2-t1):.4f}s')
-    return wrapper_function
+        # TCP can take minutes to release a socket
+        super().increment_port_number()
+
+        # Convert the temporary file into a csv file
+        file_utils.convert_stl_to_csv(stl_filename='temporary_cad_file.stl', new_csv_filename='temporary_csv_file.csv')
+
+        # Then, send the file back
+        super().connect()
+        super().send_file('temporary_csv_file.csv')
+
+        # Finally, delete the files
+        super().delete_file('temporary_csv_file.csv')
+        super().delete_file('temporary_cad_file.stl')
